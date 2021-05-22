@@ -1,0 +1,20 @@
+body, .conteudoPage {
+    min-height: calc(100vh - 56px);
+    overflow-y: auto;
+}
+.navbar{
+    border-bottom:5px solid #003366;
+}
+footer{
+    border-top:5px solid #003366;
+}
+.wrapper {
+    display: flex;
+    width: 100%;
+    align-items: stretch;
+}
+table td {
+    word-wrap: break-word;     
+    overflow-wrap: break-word;
+    word-break: break-all;
+}
