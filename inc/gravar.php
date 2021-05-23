@@ -1,14 +1,15 @@
 <?php
+
 /*** Página de tratamento do arquivo recebido via input ***/
 
 // Função para checar extensão de arquivo
 function checarArquivo($nome)
 {
-    $extencao = strtolower(pathinfo($nome, PATHINFO_EXTENSION));
+    $extencao = mb_strtolower(pathinfo($nome, PATHINFO_EXTENSION));
 
     if (!strstr('.xml', $extencao)) {
         return FALSE;
-    }else{
+    } else {
         return TRUE;
     }
 }
@@ -23,11 +24,11 @@ function retornaValores($tags, $caminhoAtual)
     // Para cada linha extraida no 'explode'
     foreach ($tags as $tag) {
         //verifica se é valor, caminho ou fechamento de tag
-        if (strpos($tag, '<') !== false && strpos($tag, '>') !== false) { //se contém '>' e '<' é valor
+        if (mb_strpos($tag, '<') !== false && mb_strpos($tag, '>') !== false) { //se contém '>' e '<' é valor
             //retirando '<' e '>' para ficar apenas o valor
-            $valor = substr($tag, strpos($tag, ">") + 1, (strpos($tag, "<") - strpos($tag, ">")) - 1);
+            $valor = mb_substr($tag, mb_strpos($tag, ">") + 1, (mb_strpos($tag, "<") - mb_strpos($tag, ">")) - 1);
             //pegando o nome da tag correspondente ao valor
-            $nomeTag = substr($tag, 0, strpos($tag, ">"));
+            $nomeTag = mb_substr($tag, 0, mb_strpos($tag, ">"));
             //remove tag da lista
             unset($tags[$i]);
             break;
@@ -35,16 +36,19 @@ function retornaValores($tags, $caminhoAtual)
             $valor = 'false';
             $nomeTag = 'false';
             //retorna um diretório no caminho
-            $caminho = substr($caminho, 0, strripos($caminho, "/"));
+            $caminho = mb_substr($caminho, 0, strripos($caminho, "/"));
             //remove tag da lista
             unset($tags[$i]);
             break;
-        } else { // caminho
-            //verifica se existem outros campos na tag
-            if ($posicaoFinal = strpos($tag, " ")) {
-                $caminho .= '/' . substr($tag, 0, $posicaoFinal);
-            } else {
-                $caminho .= '/' . $tag;
+        } else { // caminho ou auto fechamento
+            // verifica se é auto fechamento
+            if (mb_substr($tag, -1) !== '/') {
+                //verifica se existem outros campos na tag
+                if ($posicaoFinal = mb_strpos($tag, " ")) {
+                    $caminho .= '/' . mb_substr($tag, 0, $posicaoFinal);
+                } else {
+                    $caminho .= '/' . $tag;
+                }
             }
             //remove tag da lista
             unset($tags[$i]);
@@ -80,10 +84,14 @@ if (checarArquivo($_FILES['arquivo']['name']) == FALSE) {
 
 // Colocar em uma variável
 while (!feof($arquivo)) {
-    $arquivoLinha = fgets($arquivo);
+    $arquivoLinha .= fgets($arquivo);
 }
 // Fechar arquivo
 fclose($arquivo);
+
+// Retirar quebra de linha e espaço entre tags
+$arquivoLinha = str_replace(array("\n", "\t", "\r"), '', $arquivoLinha);
+$arquivoLinha = preg_replace('/\>\s+\</m', '><', $arquivoLinha);
 
 // Criar array de retorno
 $retornoTags = array();
